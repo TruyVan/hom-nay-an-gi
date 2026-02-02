@@ -1,8 +1,8 @@
 import { useState, useEffect } from 'react';
 import { toast } from 'react-toastify';
-import type { FoodItem, HistoryItem } from '../types';
+import type { FoodItem } from '../types';
 import { Button } from './Button';
-import { Trash2, Plus, X } from 'lucide-react';
+import { Trash2, X } from 'lucide-react';
 import { formatDate } from '../utils';
 
 export const Modal = ({ onClose, foods, setFoods, history, setHistory, excludeEaten, setExcludeEaten }: any) => {
