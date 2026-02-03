@@ -16,6 +16,10 @@ import { Scratch } from './components/games/Scratch';
 import { Wheel } from './components/games/Wheel';
 import { GiftBox } from './components/games/GiftBox';
 
+// 1. Thêm dòng import này ở trên cùng file App.tsx
+import logoImg from './assets/logo.png'; 
+import { motion } from 'framer-motion'; // Nhớ dùng framer-motion cho xịn
+
 export default function App() {
     const [foods, setFoods] = useState<FoodItem[]>(INITIAL_FOODS);
     const [history, setHistory] = useState<HistoryItem[]>([]);
@@ -69,6 +73,7 @@ export default function App() {
         <div className="fixed bottom-[-20%] right-[-10%] w-[70vw] h-[70vw] bg-[#A1C4FD]/15 rounded-full blur-[120px] pointer-events-none" />
 
         <header className="z-10 w-full max-w-6xl flex justify-between items-center mb-10 px-4">
+            
             <div>
                 <h1 className="text-4xl md:text-5xl font-black bg-clip-text text-transparent bg-gradient-to-r from-[#FF9A9E] to-[#A1C4FD] pb-1.5">Hôm Nay Ăn Gì?</h1>
                 <p className="text-sm text-gray-500 font-medium mt-3 italic">Random món ăn khi bạn chưa biết chọn gì... </p>
@@ -112,7 +117,7 @@ export default function App() {
                 <div className="m-auto flex flex-col items-center animate-pop-in max-w-lg w-full">
                     <h2 className="text-2xl text-gray-500 mb-6 font-bold tracking-tight">Tín hiệu vũ trụ đã chọn... ✨</h2>
                     <div className="w-full p-10 bg-white/80 rounded-[40px] shadow-2xl border-4 border-white mb-10 text-center transform hover:scale-105 transition-transform">
-                        <p className="text-5xl font-black text-transparent bg-clip-text bg-gradient-to-br from-[#FF9A9E] to-[#A1C4FD] mb-4">{winner.name}</p>
+                        <p className="text-5xl font-black text-transparent bg-clip-text bg-gradient-to-br from-[#FF9A9E] to-[#A1C4FD] pb-4">{winner.name}</p>
                         {winner.address && <p className="text-gray-400 font-medium flex items-center justify-center gap-2">📍 {winner.address}</p>}
                     </div>
                     <div className="flex flex-col gap-4 w-full">

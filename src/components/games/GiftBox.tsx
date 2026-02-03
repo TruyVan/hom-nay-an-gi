@@ -63,14 +63,12 @@ export const GiftBox = ({ items, onComplete }: { items: FoodItem[], onComplete: 
         ))}
       </div>
       
-      <div className="mt-6 text-center py-4 bg-white/10 backdrop-blur-sm rounded-2xl">
-        <p className="text-sm font-bold text-gray-500 italic flex items-center justify-center gap-2">
+      <div className="text-center mt-4 text-xs font-bold text-gray-400 animate-pulse">
           {openingId ? (
-            <>✨ <span className="animate-pulse">Đang khui điều bất ngờ dành cho anh...</span> ✨</>
+            <>✨ <>Đang khui món quà bất ngờ cho bạn...</> ✨</>
           ) : (
             <>💖 Chọn một món quà mà bạn yêu thích nhất! 💖</>
           )}
-        </p>
       </div>
     </div>
   );

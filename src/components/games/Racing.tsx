@@ -1,62 +1,81 @@
 import { useEffect, useState, useRef } from 'react';
-import { motion } from 'framer-motion';
+import { motion, AnimatePresence } from 'framer-motion';
 import type { FoodItem } from '../../types';
-import { Button } from '../Button';
+import { RotateCcw } from 'lucide-react';
 
 const ANIMALS = ['🐱', '🐶', '🐰', '🦊', '🐼', '🐨', '🐯', '🦁', '🐮', '🐷', '🐸', '🐵', '🐔', '🐧', '🐦', '🦆', '🦅', '🦉', '🐴', '🦄'];
 
 export const Racing = ({ items, onComplete }: { items: FoodItem[], onComplete: (v: FoodItem) => void }) => {
   const [positions, setPositions] = useState<number[]>([]);
   const [isRacing, setIsRacing] = useState(false);
+  const [raceDuration, setRaceDuration] = useState(5000); // Mặc định 5s
   const raceItems = items.slice(0, 20);
   
   const startTime = useRef<number>(0);
   const finishTimes = useRef<number[]>([]);
+  const speedProfiles = useRef<{ phases: number[] }[]>([]);
   const frameRef = useRef<number>(0);
 
-  // Cấu hình tọa độ "vàng"
-  const FINISH_LINE_PERCENT = 80; // Vạch đích nằm ở 80%
-  const STOP_OFFSET = 8; // Dừng lại sau vạch đích 8%
-  const MAX_POS = FINISH_LINE_PERCENT + STOP_OFFSET; // Tổng cộng 88%
+  // Cấu hình tọa độ mới theo ý anh
+  const START_LINE = 5;
+  const FINISH_LINE = 90; // Thu hẹp sân đích lại
+  const STOP_POS = 94; // Điểm dừng cuối cùng (sát mép phải hơn)
 
   const initRace = () => {
-    // Thời gian đua kịch tính quanh mốc 5s
-    const winnerTime = 4800 + Math.random() * 500; 
-    // Các con khác chậm hơn tối đa 2.5s
-    const times = raceItems.map(() => winnerTime + Math.random() * 2500).sort(() => Math.random() - 0.5);
-    
-    finishTimes.current = times;
+    if (isRacing) return;
+
+    // Tạo thời gian về đích ngẫu nhiên dựa trên lựa chọn
+    const baseTime = raceDuration;
+    finishTimes.current = raceItems.map(() => 
+      baseTime * (0.9 + Math.random() * 0.4) // Lệch khoảng 10-40% so với mốc chọn
+    );
+
+    // Tạo "Speed Profile" để tốc độ biến thiên
+    speedProfiles.current = raceItems.map(() => ({
+      phases: Array.from({ length: 5 }, () => Math.random() * 0.5 + 0.5) // Các hệ số nhân tốc độ
+    }));
+
     startTime.current = Date.now();
     setIsRacing(true);
     animate();
+  };
+
+  const resetRace = () => {
+    cancelAnimationFrame(frameRef.current);
+    setIsRacing(false);
+    setPositions(new Array(raceItems.length).fill(START_LINE));
   };
 
   const animate = () => {
     const elapsed = Date.now() - startTime.current;
     let allFinished = true;
 
-    const nextPositions = finishTimes.current.map((fTime) => {
-      // Tính toán progress: 100% của progress tương ứng với FINISH_LINE_PERCENT
-      const progressRatio = elapsed / fTime;
-      const currentPos = progressRatio * FINISH_LINE_PERCENT;
+    const nextPositions = finishTimes.current.map((fTime, i) => {
+      const ratio = elapsed / fTime;
       
-      // LOGIC DỪNG THÉP: 
-      // Khi đã vượt vạch đích (FINISH_LINE_PERCENT), 
-      // cho phép đi thêm một chút (STOP_OFFSET) rồi đứng im re.
-      const cappedPos = Math.min(currentPos, MAX_POS);
+      // Logic tốc độ biến thiên: dùng hàm Sin kết hợp với profile ngẫu nhiên
+      // Đảm bảo hàm luôn tăng (không giật lùi) nhưng độ dốc thay đổi
+      const profile = speedProfiles.current[i];
+      const speedModifier = 1 + Math.sin(ratio * Math.PI * 2) * 0.2 * profile.phases[0];
       
-      if (cappedPos < MAX_POS) allFinished = false;
-      return cappedPos;
+      // Tính toán vị trí dựa trên tiến độ biến thiên
+      // f(x) = x + sin(x) để vận tốc thay đổi nhưng luôn tiến về trước
+      const smoothRatio = ratio + (Math.sin(ratio * Math.PI * 3) * 0.05);
+      const currentPos = START_LINE + (FINISH_LINE - START_LINE) * Math.min(smoothRatio, 1);
+      
+      // Dừng thép tại điểm STOP_POS
+      const finalPos = ratio >= 1 ? STOP_POS : Math.max(START_LINE, currentPos);
+      
+      if (finalPos < STOP_POS) allFinished = false;
+      return finalPos;
     });
 
     setPositions(nextPositions);
 
-    // Nếu tất cả đã "phanh" đứng im sau vạch đích
     if (allFinished) {
       setIsRacing(false);
       const winnerIdx = finishTimes.current.indexOf(Math.min(...finishTimes.current));
-      // Đợi 1s để anh nhìn rõ mặt "kẻ thắng cuộc"
-      setTimeout(() => onComplete(raceItems[winnerIdx]), 1000);
+      setTimeout(() => onComplete(raceItems[winnerIdx]), 800);
       return;
     }
 
@@ -64,62 +83,115 @@ export const Racing = ({ items, onComplete }: { items: FoodItem[], onComplete: (
   };
 
   useEffect(() => {
+    // Khởi tạo vị trí vạch xuất phát
+    setPositions(new Array(raceItems.length).fill(START_LINE));
     return () => cancelAnimationFrame(frameRef.current);
-  }, []);
+  }, [items]);
 
   return (
-    <div className="w-full h-full flex flex-col p-2">
-      <div className="flex-1 overflow-y-auto space-y-3 pr-4 custom-scrollbar">
+    <div className="w-full h-full flex flex-col p-2 select-none">
+      
+      {/* Header điều khiển */}
+      <div className="flex justify-between items-center mb-6 px-4">
+        <div className="flex flex-col gap-1">
+          <label className="text-[10px] font-black text-gray-400 tracking-widest">THỜI GIAN ĐUA</label>
+          <select 
+            disabled={isRacing}
+            value={raceDuration}
+            onChange={(e) => setRaceDuration(Number(e.target.value))}
+            className="bg-white/80 backdrop-blur-md border-none rounded-xl px-3 py-1.5 text-xs font-bold text-gray-600 shadow-sm outline-none cursor-pointer hover:bg-white transition-all"
+          >
+            <option value={1000}>1 giây (Siêu tốc)</option>
+            <option value={5000}>5 giây (Vừa đủ)</option>
+            <option value={10000}>10 giây (Hồi hộp)</option>
+            <option value={15000}>15 giây (Gay cấn)</option>
+            <option value={30000}>30 giây (Vô tận)</option>
+          </select>
+        </div>
+
+        <div className="flex flex-col items-center">
+          <AnimatePresence mode="wait">
+            {!isRacing ? (
+              <motion.div 
+                key="flag"
+                initial={{ scale: 0 }} animate={{ scale: 1 }} exit={{ scale: 0 }}
+                onClick={initRace}
+                className="group flex flex-col items-center cursor-pointer"
+              >
+                <motion.div
+                  animate={{ rotate: [0, 15, -15, 0] }}
+                  transition={{ repeat: Infinity, duration: 1.5 }}
+                  className="text-4xl filter drop-shadow-md group-hover:scale-110 transition-transform"
+                >
+                  🚩
+                </motion.div>
+                <span className="text-[10px] font-black text-pink-400 mt-1 animate-pulse">PHẤT CỜ ĐỂ ĐUA</span>
+              </motion.div>
+            ) : (
+              <motion.button
+                key="reset"
+                initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }}
+                onClick={resetRace}
+                className="flex items-center gap-2 px-4 py-2 bg-gray-100 hover:bg-white rounded-full text-[10px] font-bold text-gray-500 shadow-sm transition-all"
+              >
+                <RotateCcw size={12} /> ĐUA LẠI TỪ ĐẦU
+              </motion.button>
+            )}
+          </AnimatePresence>
+        </div>
+      </div>
+
+      {/* Sân đua */}
+      <div className="flex-1 overflow-y-auto space-y-1 pr-2 custom-scrollbar">
         {raceItems.map((item, i) => (
           <div 
             key={item.id} 
-            className="relative h-16 w-full bg-white/60 rounded-2xl flex items-center border border-white shadow-sm overflow-hidden"
-            style={{ paddingRight: '12%' }} // Tạo khoảng trống an toàn bên phải
+            className="relative h-12 w-full bg-white/40 rounded-xl flex items-center px-4 border border-white/50 shadow-sm overflow-hidden"
           >
-            {/* Tên món: Căn lề phải, nằm bên trái vạch đích */}
+            {/* Vạch xuất phát (Start) */}
             <div 
-              className="absolute font-sans leading-tight text-right"
-              style={{ left: '10%', right: `${100 - FINISH_LINE_PERCENT + 2}%` }}
-            >
-               <p className="text-xs font-black text-gray-700 truncate">{item.name}</p>
-               <p className="text-[10px] text-gray-400 truncate italic">{item.address}</p>
-            </div>
-            
-            {/* Vạch đích: Cố định chuẩn xác */}
-            <div 
-              className="absolute top-0 bottom-0 w-1.5 bg-[repeating-linear-gradient(45deg,#ff4d4d,#ff4d4d_5px,#fff_5px,#fff_10px)] opacity-40 shadow-sm" 
-              style={{ left: `${FINISH_LINE_PERCENT}%` }}
+              className="absolute top-0 bottom-0 w-1 bg-gray-200" 
+              style={{ left: `${START_LINE}%` }}
             />
 
-            {/* Thú đua: Icon 32px, căn giữa bằng margin-left âm */}
+            {/* Tên món & Địa chỉ */}
+            <div 
+              className="absolute font-sans leading-tight text-right pr-4"
+              style={{ left: '10%', right: `${100 - FINISH_LINE + 2}%` }}
+            >
+               <p className="text-[11px] font-black text-gray-700 truncate">{item.name}</p>
+               <p className="text-[9px] text-gray-400 truncate italic">{item.address}</p>
+            </div>
+            
+            {/* Vạch đích (Finish) */}
+            <div 
+              className="absolute top-0 bottom-0 w-1.5 bg-[repeating-linear-gradient(45deg,#ff4d4d,#ff4d4d_4px,#fff_4px,#fff_8px)] opacity-40 shadow-sm" 
+              style={{ left: `${FINISH_LINE}%` }}
+            />
+
+            {/* Thú đua */}
             <motion.div 
-              className="absolute text-3xl z-10 select-none drop-shadow-md flex items-center justify-center w-10 h-10"
+              className="absolute text-2xl z-10 select-none drop-shadow-md flex items-center justify-center w-8 h-8"
               style={{ 
-                  left: `${positions[i] || 0}%`,
-                  marginLeft: '-20px' // Center icon trên trục left
+                  left: `${positions[i] || START_LINE}%`,
+                  marginLeft: '-16px' 
               }}
-              animate={isRacing && (positions[i] || 0) < MAX_POS ? { 
-                y: [0, -3, 0],
-                rotate: [-2, 2, -2] 
+              // Chỉ rung lắc khi đang đua và chưa tới vạch đích
+              animate={isRacing && (positions[i] || 0) < FINISH_LINE ? { 
+                y: [0, -4, 0],
+                rotate: [-5, 5, -5] 
               } : { y: 0, rotate: 0 }}
-              transition={{ repeat: Infinity, duration: 0.2 }}
+              transition={{ repeat: Infinity, duration: 0.15 }}
             >
               {ANIMALS[i % ANIMALS.length]}
             </motion.div>
           </div>
         ))}
       </div>
-      
-      {!isRacing && (
-        <div className="mt-6 flex justify-center">
-            <Button 
-              onClick={initRace} 
-              className="px-12 py-4 text-lg shadow-[0_10px_20px_rgba(255,154,158,0.3)] hover:shadow-[0_15px_30px_rgba(255,154,158,0.5)] transition-all"
-            >
-              Thả thú đua ngay! 🏇
-            </Button>
-        </div>
-      )}
+
+      <p className="mt-4 text-[10px] text-center text-gray-400 italic">
+        {isRacing ? "Cuộc đua đang diễn ra vô cùng kịch tính! 🏁" : "Chọn thời gian và phất cờ để bắt đầu cuộc đua nha! ❤️"}
+      </p>
     </div>
   );
 };
