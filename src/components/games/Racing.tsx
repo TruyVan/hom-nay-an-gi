@@ -43,7 +43,7 @@ export const Racing = ({ items, onComplete }: { items: FoodItem[], onComplete: (
   const resetRace = () => {
     cancelAnimationFrame(frameRef.current);
     setIsRacing(false);
-    setPositions(new Array(raceItems.length).fill(START_LINE));
+    setPositions(new Array(raceItems.length).fill(START_LINE-5));
   };
 
   const animate = () => {
