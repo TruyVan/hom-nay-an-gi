@@ -52,12 +52,7 @@ export const Racing = ({ items, onComplete }: { items: FoodItem[], onComplete: (
 
     const nextPositions = finishTimes.current.map((fTime, i) => {
       const ratio = elapsed / fTime;
-      
-      // Logic tốc độ biến thiên: dùng hàm Sin kết hợp với profile ngẫu nhiên
-      // Đảm bảo hàm luôn tăng (không giật lùi) nhưng độ dốc thay đổi
-      const profile = speedProfiles.current[i];
-      const speedModifier = 1 + Math.sin(ratio * Math.PI * 2) * 0.2 * profile.phases[0];
-      
+      i +=0;
       // Tính toán vị trí dựa trên tiến độ biến thiên
       // f(x) = x + sin(x) để vận tốc thay đổi nhưng luôn tiến về trước
       const smoothRatio = ratio + (Math.sin(ratio * Math.PI * 3) * 0.05);

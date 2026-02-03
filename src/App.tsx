@@ -16,10 +16,6 @@ import { Scratch } from './components/games/Scratch';
 import { Wheel } from './components/games/Wheel';
 import { GiftBox } from './components/games/GiftBox';
 
-// 1. Thêm dòng import này ở trên cùng file App.tsx
-import logoImg from './assets/logo.png'; 
-import { motion } from 'framer-motion'; // Nhớ dùng framer-motion cho xịn
-
 export default function App() {
     const [foods, setFoods] = useState<FoodItem[]>(INITIAL_FOODS);
     const [history, setHistory] = useState<HistoryItem[]>([]);
