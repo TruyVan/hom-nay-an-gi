@@ -35,6 +35,10 @@ export const Modal = ({ onClose, foods, setFoods, history, setHistory, excludeEa
       toast.error("Vui lòng điền Tên món/Địa chỉ! 🥺", { position: "top-center" });
       return;
     }
+    if (foods.length >= 20) {
+      toast.error("Giới hạn tối đa là 20 món. 🤚");
+      return;
+    }
     setFoods([...foods, { id: crypto.randomUUID(), name: name || 'Món bí ẩn', address, active: true }]);
     setName(''); setAddress('');
     toast.success("Đã thêm món mới thành công! 🥰");
@@ -172,7 +176,7 @@ export const Modal = ({ onClose, foods, setFoods, history, setHistory, excludeEa
                 ) : (
                   <div className="flex items-center gap-2 p-2 bg-red-50 rounded-2xl animate-pulse border border-red-100">
                     <span className="text-[10px] font-bold text-red-500">Xóa vĩnh viễn? 🥺</span>
-                    <button onClick={() => { setHistory([]); setShowConfirmClearHistory(false); toast.info("Đã làm mới nhật ký! ✨"); }} className="px-3 py-1 bg-red-500 text-white rounded-lg text-[10px] font-bold">Xóa!</button>
+                    <button onClick={() => { setHistory([]); setShowConfirmClearHistory(false); toast.info("Đã xóa nhật ký ăn uống! ✨"); }} className="px-3 py-1 bg-red-500 text-white rounded-lg text-[10px] font-bold">Xóa!</button>
                     <button onClick={() => setShowConfirmClearHistory(false)} className="px-3 py-1 bg-gray-200 text-gray-600 rounded-lg text-[10px] font-bold">Giữ lại</button>
                   </div>
                 )}

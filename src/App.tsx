@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import confetti from 'canvas-confetti';
 import { ToastContainer, toast } from 'react-toastify';
 import 'react-toastify/dist/ReactToastify.css';
@@ -17,8 +17,14 @@ import { Wheel } from './components/games/Wheel';
 import { GiftBox } from './components/games/GiftBox';
 
 export default function App() {
-    const [foods, setFoods] = useState<FoodItem[]>(INITIAL_FOODS);
-    const [history, setHistory] = useState<HistoryItem[]>([]);
+    const [foods, setFoods] = useState<FoodItem[]>(() => {
+        const savedFoods = localStorage.getItem('foods-data');
+        return savedFoods ? JSON.parse(savedFoods) : INITIAL_FOODS;
+    });
+    const [history, setHistory] = useState<HistoryItem[]>(() => {
+        const savedHistory = localStorage.getItem('history-data');
+        return savedHistory ? JSON.parse(savedHistory) : [];
+    });
     const [mode, setMode] = useState<GameMode>('gacha');
     const [showModal, setShowModal] = useState(false);
     const [excludeEaten, setExcludeEaten] = useState(false);
@@ -28,6 +34,13 @@ export default function App() {
         if (excludeEaten && history.some(h => h.foodName === f.name)) return false;
         return f.active;
     });
+
+    useEffect(() => {
+        localStorage.setItem('foods-data', JSON.stringify(foods));
+    }, [foods]);
+    useEffect(() => {
+        localStorage.setItem('history-data', JSON.stringify(history));
+    }, [history]);
 
     const handleGameComplete = (result: FoodItem) => {
         setWinner(result);
@@ -50,6 +63,7 @@ export default function App() {
             autoClose: 8000 
         });
     };
+    
 
   return (
     <div className="min-h-screen w-full bg-[#fdfbf7] flex flex-col items-center p-4 md:p-10 transition-all duration-700">
