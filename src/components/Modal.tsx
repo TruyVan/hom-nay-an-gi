@@ -138,11 +138,11 @@ export const Modal = ({ onClose, foods, setFoods, history, setHistory, excludeEa
               {/* Food List Section */}
               <div className="space-y-3">
                 <div className="flex items-center justify-between px-2">
-                    <p className="font-bold text-gray-400 text-[10px] uppercase tracking-widest">Danh sách hiện tại</p>
+                    <p className="font-bold text-gray-400 text-[10px] uppercase tracking-widest">Danh sách hiện tại ({foods.length})</p>
                     <p className="text-[9px] text-gray-400 italic">* Tích chọn để đưa món vào vòng quay random</p>
                 </div>
                 
-                {foods.length === 0 && <p className="text-center py-10 text-gray-300 italic text-sm">Danh sách trống trơn rồi anh ơi! 🥣</p>}
+                {foods.length === 0 && <p className="text-center py-10 text-gray-300 italic text-sm">Danh sách trống trơn mất tiêu rồii! 🥣</p>}
                 
                 {foods.map((food: any) => (
                   <div key={food.id} className={`flex items-center justify-between p-5 rounded-[25px] transition-all border ${food.active ? 'bg-white shadow-sm border-white' : 'bg-gray-50 opacity-60 border-transparent'}`}>
@@ -190,7 +190,7 @@ export const Modal = ({ onClose, foods, setFoods, history, setHistory, excludeEa
             /* History Section */
             <div className="space-y-4">
               <div className="flex justify-between items-center mb-6">
-                <p className="text-sm font-bold text-gray-400 italic">Mọi khoảnh khắc bên anh đều là kỷ niệm...</p>
+                <p className="text-sm font-bold text-gray-400 italic"></p>
                 {!showConfirmClearHistory ? (
                   <button onClick={() => setShowConfirmClearHistory(true)} className="text-xs font-bold text-red-400 hover:text-red-600 flex items-center gap-1 cursor-pointer"><Trash2 size={14} /> Xóa nhật ký</button>
                 ) : (
